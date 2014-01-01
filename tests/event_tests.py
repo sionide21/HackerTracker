@@ -24,7 +24,7 @@ class TestEvents(unittest.TestCase):
     def test_basic_track(self):
         e = event.Event.for_name("Drink glass of water")
         o = e.track()
-        self.assertEqual(e.entries(), [o])
+        self.assertEqual(list(e.entries()), [o])
 
     def test_events_persist(self):
         e = event.Event.for_name("Drink glass of water")

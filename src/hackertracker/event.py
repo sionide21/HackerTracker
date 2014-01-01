@@ -12,7 +12,7 @@ from sqlalchemy.sql.expression import func
 class Event(Model):
     name = Column(String(100), index=True)
     created_at = Column(DateTime, default=func.now())
-    _entries = relationship("Entry", order_by="-Entry.when", backref=backref("event"))
+    _entries = relationship("Entry", order_by="-Entry.when", backref=backref("event"), lazy='dynamic')
 
     def __init__(self, name):
         self.name = name
