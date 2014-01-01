@@ -51,6 +51,15 @@ class TestEvents(unittest.TestCase):
         Session.commit()
         self.assertEqual(e.entry_count(), 3)
 
+    def test_latest_entry(self):
+        e = event.Event.for_name("Drink glass of water")
+        e.track(when=earlier(seconds=3))
+        e.track(when=earlier(seconds=2))
+        f = e.track(when=earlier(seconds=1))
+        Session.commit()
+
+        self.assertEqual(e.latest_entry().id, f.id)
+
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")
         e2 = event.Event.for_name("Clean litter box")
@@ -62,7 +71,7 @@ class TestEvents(unittest.TestCase):
         o = e.track()
         self.assertDatetimesEqual(o.when, datetime.now())
 
-        when = datetime.now() - timedelta(hours=10)
+        when = earlier(hours=10)
         o = e.track(when)
         self.assertDatetimesEqual(o.when, when)
 
@@ -82,3 +91,7 @@ class TestEvents(unittest.TestCase):
         event.Event.for_name("Fire ze missile").track(attrs=dict(le_tired="true"))
         Session.commit()
         self.assertEqual(e.attributes(), ["hello", "location", "size"])
+
+
+def earlier(**kwargs):
+    return datetime.now() - timedelta(**kwargs)

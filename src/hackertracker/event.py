@@ -9,10 +9,27 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql.expression import func
 
 
+class Attribute(Model):
+    entry_id = Column(Integer, ForeignKey('entry.id'))
+    key = Column(String(100))
+    value = Column(String(100))
+
+
+class Entry(Model):
+    event_id = Column(Integer, ForeignKey('event.id'))
+    when = Column(DateTime)
+    _attrs = relationship("Attribute", backref=backref("entry"), collection_class=attribute_mapped_collection("key"))
+    attrs = association_proxy("_attrs", "value", creator=lambda k, v: Attribute(key=k, value=v))
+
+    def __init__(self, when=None, attrs=None):
+        self.when = when or datetime.now()
+        self.attrs = attrs or {}
+
+
 class Event(Model):
     name = Column(String(100), index=True)
     created_at = Column(DateTime, default=func.now())
-    _entries = relationship("Entry", order_by="-Entry.when", backref=backref("event"), lazy='dynamic')
+    _entries = relationship("Entry", order_by=Entry.when.desc(), backref=backref("event"), lazy='dynamic')
 
     def __init__(self, name):
         self.name = name
@@ -25,6 +42,9 @@ class Event(Model):
 
     def entry_count(self):
         return self._entries.count()
+
+    def latest_entry(self):
+        return self._entries.first()
 
     def attributes(self):
         return [x for x, in Session.query(Attribute.key)
@@ -42,20 +62,3 @@ class Event(Model):
             return Session.query(cls).filter_by(name=name).one()
         except NoResultFound:
             return returnit(Session.add, cls(name))
-
-
-class Entry(Model):
-    event_id = Column(Integer, ForeignKey('event.id'))
-    when = Column(DateTime)
-    _attrs = relationship("Attribute", backref=backref("entry"), collection_class=attribute_mapped_collection("key"))
-    attrs = association_proxy("_attrs", "value", creator=lambda k, v: Attribute(key=k, value=v))
-
-    def __init__(self, when=None, attrs=None):
-        self.when = when or datetime.now()
-        self.attrs = attrs or {}
-
-
-class Attribute(Model):
-    entry_id = Column(Integer, ForeignKey('entry.id'))
-    key = Column(String(100))
-    value = Column(String(100))
