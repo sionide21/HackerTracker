@@ -60,6 +60,11 @@ class TestEvents(unittest.TestCase):
 
         self.assertEqual(e.latest_entry().id, f.id)
 
+    def test_display_entry(self):
+        e = event.Event.for_name("Drink glass of water")
+        o = e.track(when=datetime(2014, 1, 1, 16, 6, 20, 216238))
+        self.assertEqual(str(o), "Jan 01, 2014 04:06PM")
+
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")
         e2 = event.Event.for_name("Clean litter box")

@@ -2,7 +2,7 @@ from database import Model, Session
 from datetime import datetime
 from lib import returnit
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, subqueryload
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -25,6 +25,9 @@ class Entry(Model):
         self.when = when or datetime.now()
         self.attrs = attrs or {}
 
+    def __str__(self):
+        return self.when.strftime("%b %m, %Y %I:%M%p")
+
 
 class Event(Model):
     name = Column(String(100), index=True)
@@ -42,7 +45,7 @@ class Event(Model):
         return returnit(self._entries.append, Entry(*args, **kwargs))
 
     def entries(self):
-        return self._entries
+        return self._entries.options(subqueryload(Entry._attrs))
 
     def entry_count(self):
         return self._entries.count()
