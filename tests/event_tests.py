@@ -43,6 +43,14 @@ class TestEvents(unittest.TestCase):
         self.assertDatetimesEqual(when, o1.when)
         self.assertEqual(attrs, o1.attrs)
 
+    def test_entry_count(self):
+        e = event.Event.for_name("Drink glass of water")
+        e.track()
+        e.track()
+        e.track()
+        Session.commit()
+        self.assertEqual(e.entry_count(), 3)
+
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")
         e2 = event.Event.for_name("Clean litter box")

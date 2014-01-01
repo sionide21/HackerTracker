@@ -23,6 +23,9 @@ class Event(Model):
     def entries(self):
         return self._entries
 
+    def entry_count(self):
+        return self._entries.count()
+
     def attributes(self):
         return [x for x, in Session.query(Attribute.key)
                 .join(Attribute.entry)
