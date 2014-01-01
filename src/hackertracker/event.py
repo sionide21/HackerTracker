@@ -1,14 +1,18 @@
 from database import Model, Session
 from datetime import datetime
 from lib import returnit
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.sql.expression import func
 
 
 class Event(Model):
     name = Column(String(100), index=True)
-    _entries = relationship("Entry", order_by="-Entry.created_at", backref=backref("event"))
+    created_at = Column(DateTime, default=func.now())
+    _entries = relationship("Entry", order_by="-Entry.when", backref=backref("event"))
 
     def __init__(self, name):
         self.name = name
@@ -33,7 +37,16 @@ class Event(Model):
 
 class Entry(Model):
     event_id = Column(Integer, ForeignKey('event.id'))
+    when = Column(DateTime)
+    _attrs = relationship("Attribute", backref=backref("entry"), collection_class=attribute_mapped_collection("key"))
+    attrs = association_proxy("_attrs", "value", creator=lambda k, v: Attribute(key=k, value=v))
 
     def __init__(self, when=None, attrs=None):
         self.when = when or datetime.now()
         self.attrs = attrs or {}
+
+
+class Attribute(Model):
+    entry_id = Column(Integer, ForeignKey('entry.id'))
+    key = Column(String(100))
+    value = Column(String(100))

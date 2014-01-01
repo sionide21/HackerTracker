@@ -29,11 +29,18 @@ class TestEvents(unittest.TestCase):
     def test_events_persist(self):
         e = event.Event.for_name("Drink glass of water")
         o = e.track(attrs=dict(size="16", location="office"))
+        when = o.when
+        attrs = dict(o.attrs)
+        print attrs
+
+        # Reload from db
+        database.Session.commit()
+        database.Session.remove()
 
         e = event.Event.for_name("Drink glass of water")
         o1 = e.entries()[0]
-        self.assertDatetimesEqual(o.when, o1.when)
-        self.assertEqual(o.attrs, o1.attrs)
+        self.assertDatetimesEqual(when, o1.when)
+        self.assertEqual(attrs, o1.attrs)
 
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")
