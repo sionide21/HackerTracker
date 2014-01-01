@@ -64,3 +64,12 @@ class TestEvents(unittest.TestCase):
             "size": "16",
             "location": "office"
         })
+
+    def test_list_attributes(self):
+        e = event.Event.for_name("Drink glass of water")
+        e.track(attrs=dict(size="16", location="office"))
+        e.track(attrs=dict(hello="world"))
+        e.track(attrs=dict(hello="goodbye", location="office"))
+        event.Event.for_name("Fire ze missile").track(attrs=dict(le_tired="true"))
+        database.Session.commit()
+        self.assertEqual(e.attributes(), ["hello", "location", "size"])

@@ -23,6 +23,12 @@ class Event(Model):
     def entries(self):
         return self._entries
 
+    def attributes(self):
+        return [x for x, in Session.query(Attribute.key)
+                .join(Attribute.entry)
+                .filter_by(event_id=self.id)
+                .order_by("key").distinct()]
+
     @classmethod
     def all(cls):
         return Session.query(cls).order_by('name').all()
