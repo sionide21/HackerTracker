@@ -34,6 +34,10 @@ class Event(Model):
     def __init__(self, name):
         self.name = name
 
+    @property
+    def slug(self):
+        return self.name.replace(" ", "_")
+
     def track(self, *args, **kwargs):
         return returnit(self._entries.append, Entry(*args, **kwargs))
 

@@ -92,6 +92,10 @@ class TestEvents(unittest.TestCase):
         Session.commit()
         self.assertEqual(e.attributes(), ["hello", "location", "size"])
 
+    def test_slug(self):
+        e = event.Event.for_name("Drink glass of water")
+        self.assertEqual(e.slug, "Drink_glass_of_water")
+
 
 def earlier(**kwargs):
     return datetime.now() - timedelta(**kwargs)
