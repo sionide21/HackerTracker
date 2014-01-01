@@ -6,15 +6,15 @@ from sqlalchemy import create_engine
 
 
 app = Flask(__name__)
-Session.configure(bind=create_engine(os.environ['DATABASE_URL']))
+Session.configure(bind=create_engine(os.environ['DATABASE_URL'], echo=True))
 
 
-@app.route('/track/<thing>')
+@app.route('/track/<thing>', methods=['GET', 'POST'])
 def track(thing):
     thing = thing.replace('_', ' ')
     event = Event.for_name(thing)
-    event.track()
-    return "You logged a '%s'" % event.name
+    event.track(attrs=request.form)
+    return ""
 
 
 @app.route('/')
