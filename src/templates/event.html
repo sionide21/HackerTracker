@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ event.name }}
+{% endblock %}
+
+
+{% block container %}
+  <div class="page-header">
+    <h1>{{ event.name }}</h1>
+  </div>
+  <!--
+    TODO put a calendar of occurrences here, possibly http://arshaw.com/fullcalendar/
+  -->
+  <ul>
+  {% for entry in event.entries() %}
+    <li>
+      {{ entry }}
+      {% if entry.attrs %}
+        <dl class="dl-horizontal">
+          {% for k, v in entry.attrs|dictsort %}
+            <dt>{{ k }}</dt> <dd>{{ v }}</dd>
+          {% endfor %}
+        </dl>
+        {% endif %}
+      </li>
+  {% endfor %}
+{% endblock %}
