@@ -1,17 +1,18 @@
 import unittest
 from datetime import datetime, timedelta
-from hackertracker import event, database
+from hackertracker import event
+from hackertracker.database import Model, Session
 from sqlalchemy import create_engine
 
 
 class TestEvents(unittest.TestCase):
     def setUp(self):
         engine = create_engine('sqlite:///:memory:', echo=True)
-        database.Model.metadata.create_all(engine)
-        database.Session.configure(bind=engine)
+        Model.metadata.create_all(engine)
+        Session.configure(bind=engine)
 
     def tearDown(self):
-        database.Session.remove()
+        Session.remove()
 
     def assertDatetimesEqual(self, w1, w2):
         "Assert datetimes are equal to the second"
@@ -34,8 +35,8 @@ class TestEvents(unittest.TestCase):
         print attrs
 
         # Reload from db
-        database.Session.commit()
-        database.Session.remove()
+        Session.commit()
+        Session.remove()
 
         e = event.Event.for_name("Drink glass of water")
         o1 = e.entries()[0]
@@ -71,5 +72,5 @@ class TestEvents(unittest.TestCase):
         e.track(attrs=dict(hello="world"))
         e.track(attrs=dict(hello="goodbye", location="office"))
         event.Event.for_name("Fire ze missile").track(attrs=dict(le_tired="true"))
-        database.Session.commit()
+        Session.commit()
         self.assertEqual(e.attributes(), ["hello", "location", "size"])
