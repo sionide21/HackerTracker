@@ -59,7 +59,7 @@ class Event(Model):
         return [x for x, in Session.query(Attribute.key)
                 .join(Attribute.entry)
                 .filter_by(event_id=self.id)
-                .order_by("key").distinct()]
+                .order_by(Attribute.key).distinct()]
 
     def export_csv(self):
         out = StringIO()
