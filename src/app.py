@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, session, render_template
+from flask import Flask, request, abort, session, render_template, make_response
 from functools import wraps
 from hackertracker.database import Session, Model
 from hackertracker.event import Event
@@ -30,6 +30,14 @@ def track(event):
 @event_controller()
 def event(event):
     return render_template("event.html", event=event)
+
+
+@event_controller("/export/<thing>.csv")
+def export_csv(event):
+    resp = make_response(event.export_csv())
+    resp.headers["Content-Type"] = "text/csv"
+    resp.headers["Content-Disposition"] = "attachment;filename=%s.csv" % event.slug
+    return resp
 
 
 @app.route('/')

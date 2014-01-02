@@ -1,3 +1,4 @@
+import csv
 import unittest
 from datetime import datetime, timedelta
 from hackertracker import event
@@ -32,7 +33,6 @@ class TestEvents(unittest.TestCase):
         o = e.track(attrs=dict(size="16", location="office"))
         when = o.when
         attrs = dict(o.attrs)
-        print attrs
 
         # Reload from db
         Session.commit()
@@ -100,6 +100,17 @@ class TestEvents(unittest.TestCase):
     def test_slug(self):
         e = event.Event.for_name("Drink glass of water")
         self.assertEqual(e.slug, "Drink_glass_of_water")
+
+    def test_exports_csv(self):
+        e = event.Event.for_name("Drink glass of water")
+        o = e.track(when=earlier(seconds=-1), attrs=dict(size="16", location="office"))
+        e.track(attrs=dict(hello="world", when="now"))
+        e.track(attrs=dict(hello="goodbye", location="office"))
+        Session.commit()
+        csv_file = list(csv.reader(e.export_csv().splitlines()))
+        self.assertEqual(csv_file[0], ["When", "hello", "location", "size", "when"])
+        self.assertEqual(csv_file[1], [str(o.when), "", "office", "16", ""])
+        self.assertEqual(len(csv_file), 4)
 
 
 def earlier(**kwargs):

@@ -1,3 +1,4 @@
+from csv import writer as csv_writer
 from database import Model, Session
 from datetime import datetime
 from lib import returnit
@@ -7,6 +8,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql.expression import func
+from StringIO import StringIO
 
 
 class Attribute(Model):
@@ -58,6 +60,16 @@ class Event(Model):
                 .join(Attribute.entry)
                 .filter_by(event_id=self.id)
                 .order_by("key").distinct()]
+
+    def export_csv(self):
+        out = StringIO()
+        csv = csv_writer(out)
+        attributes = self.attributes()
+        headers = ["When"] + attributes
+        csv.writerow(headers)
+        for entry in self.entries():
+            csv.writerow([entry.when] + [entry.attrs.get(x, "") for x in attributes])
+        return out.getvalue()
 
     @classmethod
     def all(cls):
