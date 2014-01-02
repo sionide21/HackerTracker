@@ -64,6 +64,8 @@ class TestEvents(unittest.TestCase):
         e = event.Event.for_name("Drink glass of water")
         o = e.track(when=datetime(2014, 1, 1, 16, 6, 20, 216238))
         self.assertEqual(str(o), "Jan 01, 2014 04:06PM")
+        o = e.track(when=datetime(2015, 3, 2, 0, 34, 53, 327128))
+        self.assertEqual(str(o), "Mar 02, 2015 12:34AM")
 
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")

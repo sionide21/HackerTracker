@@ -28,7 +28,7 @@ class Entry(Model):
         self.attrs = attrs or {}
 
     def __str__(self):
-        return self.when.strftime("%b %m, %Y %I:%M%p")
+        return self.when.strftime("%b %d, %Y %I:%M%p")
 
 
 class Event(Model):
