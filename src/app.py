@@ -7,21 +7,36 @@ from sqlalchemy import create_engine
 
 
 app = Flask(__name__)
-Session.configure(bind=create_engine(os.environ['DATABASE_URL'], echo=True))
+TOKEN = os.environ.get('AUTH_TOKEN')
+if Session.bind is None:
+    # Don't mess with the database connection if someone else set it up already
+    Session.configure(bind=create_engine(os.environ['DATABASE_URL'], echo=True))
+
+
+def check_auth_token(fn):
+    @wraps(fn)
+    def _fn(*args, **kwargs):
+        token = request.headers.get('X-Auth-Token', request.args.get('auth'))
+        if TOKEN == token:
+            return fn(*args, **kwargs)
+        else:
+            abort(403)
+    return _fn
 
 
 def event_controller(url=None, **kwargs):
     def _decorator(fn):
-        @app.route(url or '/%s/<thing>' % fn.__name__, **kwargs)
         @wraps(fn)
         def _controller(thing):
             event = Event.for_name(thing.replace('_', ' '))
             return fn(event)
-        return _controller
+        for f in kwargs.pop('before', []):
+            _controller = f(_controller)
+        return app.route(url or '/%s/<thing>' % fn.__name__, **kwargs)(_controller)
     return _decorator
 
 
-@event_controller(methods=['GET', 'POST'])
+@event_controller(methods=['GET', 'POST'], before=[check_auth_token])
 def track(event):
     event.track(attrs=request.form)
     return ""
