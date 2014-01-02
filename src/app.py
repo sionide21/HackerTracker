@@ -1,9 +1,13 @@
 import os
+import logging
 from flask import Flask, request, abort, session, render_template, make_response
 from functools import wraps
 from hackertracker.database import Session, Model, is_database_bound
 from hackertracker.event import Event
 from sqlalchemy import create_engine
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 app = Flask(__name__)
