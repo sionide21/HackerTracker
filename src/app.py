@@ -10,7 +10,7 @@ app = Flask(__name__)
 TOKEN = os.environ.get('AUTH_TOKEN')
 if not is_database_bound():
     # Don't mess with the database connection if someone else set it up already
-    Session.configure(bind=create_engine(os.environ['DATABASE_URL'], echo=True))
+    Session.configure(bind=create_engine(os.environ['DATABASE_URL']))
 
 
 def check_auth_token(fn):
