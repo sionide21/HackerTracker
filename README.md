@@ -1,6 +1,8 @@
 Hacker Tracker
 ==============
 
+[![Build Status](https://travis-ci.org/sionide21/HackerTracker.png?branch=master)](https://travis-ci.org/sionide21/HackerTracker)
+
 A scriptable way to track arbitrary aspects of your life.
 
 Make a request to `/track/<eventname>` and it will be recorded for later analysis.
