@@ -6,6 +6,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 Session = scoped_session(sessionmaker())
 
 
+def is_database_bound():
+    return Session.session_factory.kw['bind'] is not None
+
+
 class BaseModel(object):
     id = Column(Integer, primary_key=True)
 

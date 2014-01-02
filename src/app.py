@@ -1,14 +1,14 @@
 import os
 from flask import Flask, request, abort, session, render_template, make_response
 from functools import wraps
-from hackertracker.database import Session, Model
+from hackertracker.database import Session, Model, is_database_bound
 from hackertracker.event import Event
 from sqlalchemy import create_engine
 
 
 app = Flask(__name__)
 TOKEN = os.environ.get('AUTH_TOKEN')
-if Session.bind is None:
+if not is_database_bound():
     # Don't mess with the database connection if someone else set it up already
     Session.configure(bind=create_engine(os.environ['DATABASE_URL'], echo=True))
 
