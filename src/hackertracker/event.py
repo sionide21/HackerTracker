@@ -11,6 +11,10 @@ from sqlalchemy.sql.expression import func
 from StringIO import StringIO
 
 
+class EventNotFound(Exception):
+    "Raised when an event is not found"
+
+
 class Attribute(Model):
     entry_id = Column(Integer, ForeignKey('entry.id'))
     key = Column(String(100))
@@ -76,8 +80,11 @@ class Event(Model):
         return Session.query(cls).order_by('name').all()
 
     @classmethod
-    def for_name(cls, name):
+    def for_name(cls, name, create=False):
         try:
             return Session.query(cls).filter_by(name=name).one()
         except NoResultFound:
-            return returnit(Session.add, cls(name))
+            if create:
+                return returnit(Session.add, cls(name))
+            else:
+                raise EventNotFound(name)

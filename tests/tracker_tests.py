@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 os.environ['AUTH_TOKEN'] = 'secr3t'
 
 
-class TestEvents(unittest.TestCase):
+class TestTrackerWebapp(unittest.TestCase):
     def setUp(self):
         engine = create_engine('sqlite:///:memory:', echo=True)
         Model.metadata.create_all(engine)
@@ -37,3 +37,9 @@ class TestEvents(unittest.TestCase):
         resp = self.app.post('/track/Run_the_unit_tests?auth=secr3t', data=dict(test="very yes"))
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(Session.query(event.Event).count(), 1)
+
+    def test_doesnt_create(self):
+        for url in ('/event/Run_the_unit_tests', '/export/Run_the_unit_tests.csv'):
+            resp = self.app.get(url)
+            self.assertEqual(resp.status_code, 404, "Didn't 404 for %s" % url)
+            self.assertEqual(Session.query(event.Event).count(), 0, "Created event for %s" % url)

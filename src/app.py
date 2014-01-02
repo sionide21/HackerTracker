@@ -3,7 +3,7 @@ import logging
 from flask import Flask, request, abort, session, render_template, make_response
 from functools import wraps
 from hackertracker.database import Session, Model, is_database_bound
-from hackertracker.event import Event
+from hackertracker.event import Event, EventNotFound
 from sqlalchemy import create_engine
 
 
@@ -28,11 +28,14 @@ def check_auth_token(fn):
     return _fn
 
 
-def event_controller(url=None, **kwargs):
+def event_controller(url=None, create=False, **kwargs):
     def _decorator(fn):
         @wraps(fn)
         def _controller(thing):
-            event = Event.for_name(thing.replace('_', ' '))
+            try:
+                event = Event.for_name(thing.replace('_', ' '), create=create)
+            except EventNotFound:
+                abort(404)
             return fn(event)
         for f in kwargs.pop('before', []):
             _controller = f(_controller)
@@ -40,7 +43,7 @@ def event_controller(url=None, **kwargs):
     return _decorator
 
 
-@event_controller(methods=['GET', 'POST'], before=[check_auth_token])
+@event_controller(methods=['GET', 'POST'], create=True, before=[check_auth_token])
 def track(event):
     event.track(attrs=request.form)
     return ""

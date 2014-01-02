@@ -11,6 +11,7 @@ class TestEvents(unittest.TestCase):
         engine = create_engine('sqlite:///:memory:', echo=True)
         Model.metadata.create_all(engine)
         Session.configure(bind=engine)
+        event.Event.for_name("Drink glass of water", create=True)
 
     def tearDown(self):
         Session.remove()
@@ -20,8 +21,13 @@ class TestEvents(unittest.TestCase):
         self.assertEqual(w1.replace(microsecond=0), w2.replace(microsecond=0))
 
     def test_get_event(self):
-        e = event.Event.for_name("Drink glass of water")
-        self.assertEqual(e.name, "Drink glass of water")
+        e = event.Event.for_name("Drink pint of water", create=True)
+        self.assertEqual(e.name, "Drink pint of water")
+
+        e = event.Event.for_name("Drink pint of water")
+        self.assertEqual(e.name, "Drink pint of water")
+
+        self.assertRaises(event.EventNotFound, event.Event.for_name, "You'll never find me")
 
     def test_basic_track(self):
         e = event.Event.for_name("Drink glass of water")
@@ -69,7 +75,7 @@ class TestEvents(unittest.TestCase):
 
     def test_list_events(self):
         e1 = event.Event.for_name("Drink glass of water")
-        e2 = event.Event.for_name("Clean litter box")
+        e2 = event.Event.for_name("Clean litter box", create=True)
 
         self.assertEqual(event.Event.all(), [e2, e1])
 
@@ -95,7 +101,7 @@ class TestEvents(unittest.TestCase):
         e.track(attrs=dict(size="16", location="office"))
         e.track(attrs=dict(hello="world"))
         e.track(attrs=dict(hello="goodbye", location="office"))
-        event.Event.for_name("Fire ze missile").track(attrs=dict(le_tired="true"))
+        event.Event.for_name("Fire ze missile", create=True).track(attrs=dict(le_tired="true"))
         Session.commit()
         self.assertEqual(e.attributes(), ["hello", "location", "size"])
 
