@@ -4,6 +4,13 @@
   <div class="page-header">
     <h1>Tracked Events</h1>
   </div>
+  {% if session.logged_in %}
+    <div class="row">
+      <div class="col-md-12 text-right">
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  {% endif %}
   <ul>
     {% for event in events %}
       <div class="row">

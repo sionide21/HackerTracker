@@ -1,9 +1,13 @@
-import os
+import bmemcached
 import logging
-from flask import Flask, request, abort, session, render_template, make_response
+import os
+from flask import Flask, request, abort, session, redirect, render_template, make_response, url_for
+from flask.ext import memcache_session
 from functools import wraps
-from hackertracker.database import Session, Model, is_database_bound
+from hackertracker.database import Session, is_database_bound
 from hackertracker.event import Event, EventNotFound
+from openid.consumer.consumer import Consumer
+from openid.store.memstore import MemoryStore
 from sqlalchemy import create_engine
 
 
@@ -11,6 +15,19 @@ logging.basicConfig(level=logging.INFO)
 
 
 app = Flask(__name__)
+use_openid = False
+if 'MEMCACHEDCLOUD_SERVERS' in os.environ and 'OPENID_AUTH_IDENTITY' in os.environ:
+    use_openid = True
+    app.cache = bmemcached.Client(
+        os.environ['MEMCACHEDCLOUD_SERVERS'].split(','),
+        os.environ.get('MEMCACHEDCLOUD_USERNAME'),
+        os.environ.get('MEMCACHEDCLOUD_PASSWORD')
+    )
+    app.session_interface = memcache_session.Session()
+    openid_store = MemoryStore()
+    openid_identity = os.environ["OPENID_AUTH_IDENTITY"]
+
+
 TOKEN = os.environ.get('AUTH_TOKEN')
 if not is_database_bound():
     # Don't mess with the database connection if someone else set it up already
@@ -28,6 +45,21 @@ def check_auth_token(fn):
     return _fn
 
 
+def check_openid_credentials(fn):
+    if not use_openid:
+        return fn
+
+    @wraps(fn)
+    def _fn(*args, **kwargs):
+        if not session.get('logged_in', False):
+            c = Consumer(session, openid_store)
+            url = c.begin(openid_identity).redirectURL(url_for('index', _external=True), url_for('verify_identity', _external=True))
+            return redirect(url)
+        else:
+            return fn(*args, **kwargs)
+    return _fn
+
+
 def event_controller(url=None, create=False, **kwargs):
     def _decorator(fn):
         @wraps(fn)
@@ -37,7 +69,7 @@ def event_controller(url=None, create=False, **kwargs):
             except EventNotFound:
                 abort(404)
             return fn(event)
-        for f in kwargs.pop('before', []):
+        for f in kwargs.pop('before', [check_openid_credentials]):
             _controller = f(_controller)
         return app.route(url or '/%s/<thing>' % fn.__name__, **kwargs)(_controller)
     return _decorator
@@ -63,8 +95,28 @@ def export_csv(event):
 
 
 @app.route('/')
+@check_openid_credentials
 def index():
     return render_template("index.html", events=Event.all())
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return render_template("logout.html")
+
+
+@app.route('/verify_identity')
+def verify_identity():
+    if not use_openid:
+        abort(404)
+    c = Consumer(session, openid_store)
+    r = c.complete(request.args, request.base_url)
+    if r.status == "success" and r.identity_url == openid_identity:
+        session['logged_in'] = True
+        return redirect('/')
+    else:
+        abort(403)
 
 
 @app.before_request
