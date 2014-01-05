@@ -128,12 +128,17 @@ def setup_session():
 
 @app.teardown_request
 def remove_session(exc):
-    if exc:
+    if exc and not is_fake_error(exc):
         app.logger.exception("Rolling back database")
         Session.rollback()
     else:
         Session.commit()
     Session.remove()
+
+
+def is_fake_error(exc):
+    # See https://github.com/benoitc/gunicorn/issues/514
+    return isinstance(exc, OSError) and exc.errno == 11
 
 
 if __name__ == "__main__":
