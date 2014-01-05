@@ -9,12 +9,14 @@ from hackertracker.event import Event, EventNotFound
 from openid.consumer.consumer import Consumer
 from openid.store.memstore import MemoryStore
 from sqlalchemy import create_engine
+from werkzeug.contrib.fixers import ProxyFix
 
 
 logging.basicConfig(level=logging.INFO)
 
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 use_openid = False
 if 'MEMCACHEDCLOUD_SERVERS' in os.environ and 'OPENID_AUTH_IDENTITY' in os.environ:
     use_openid = True
