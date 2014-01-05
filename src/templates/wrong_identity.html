@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Invalid Credentials
+{% endblock %}
+
+
+{% block container %}
+<div class="page-header">
+  <h1>Incorrect Identity</h1>
+</div>
+
+<p>You have identified as "<strong><em>{{ provided }}</em></strong>" but access is restricted to "<strong><em>{{ required }}</em></strong>". This probably means you need to update the <strong>OPENID_AUTH_IDENTITY</strong> variable.
+{% endblock %}

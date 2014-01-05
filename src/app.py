@@ -114,9 +114,12 @@ def verify_identity():
         abort(404)
     c = Consumer(session, openid_store)
     r = c.complete(request.args, request.base_url)
-    if r.status == "success" and r.identity_url == openid_identity:
-        session['logged_in'] = True
-        return redirect('/')
+    if r.status == "success":
+        if r.identity_url == openid_identity:
+            session['logged_in'] = True
+            return redirect('/')
+        else:
+            return render_template("wrong_identity.html", required=openid_identity, provided=r.identity_url), 403
     else:
         abort(403)
 
