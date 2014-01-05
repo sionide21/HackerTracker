@@ -28,7 +28,7 @@ class Entry(Model):
     attrs = association_proxy("_attrs", "value", creator=lambda k, v: Attribute(key=k, value=v))
 
     def __init__(self, when=None, attrs=None):
-        self.when = when or datetime.now()
+        self.when = when or datetime.utcnow()
         self.attrs = attrs or {}
 
     def __str__(self):

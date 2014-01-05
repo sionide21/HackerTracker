@@ -82,7 +82,7 @@ class TestEvents(unittest.TestCase):
     def test_alternate_time(self):
         e = event.Event.for_name("Drink glass of water")
         o = e.track()
-        self.assertDatetimesEqual(o.when, datetime.now())
+        self.assertDatetimesEqual(o.when, datetime.utcnow())
 
         when = earlier(hours=10)
         o = e.track(when)
@@ -122,4 +122,4 @@ class TestEvents(unittest.TestCase):
 
 
 def earlier(**kwargs):
-    return datetime.now() - timedelta(**kwargs)
+    return datetime.utcnow() - timedelta(**kwargs)
