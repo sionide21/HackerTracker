@@ -129,6 +129,7 @@ def setup_session():
 @app.teardown_request
 def remove_session(exc):
     if exc:
+        logging.getLogger(__name__).error("Rolling back database: %s", exc)
         Session.rollback()
     else:
         Session.commit()
