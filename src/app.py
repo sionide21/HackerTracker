@@ -138,7 +138,7 @@ def remove_session(exc):
 
 def is_fake_error(exc):
     # See https://github.com/benoitc/gunicorn/issues/514
-    return isinstance(exc, OSError) and exc.errno == 11
+    return isinstance(exc, IOError) and exc.errno == 11
 
 
 if __name__ == "__main__":
